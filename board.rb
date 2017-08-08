@@ -1,5 +1,4 @@
 require_relative "pieces"
-require "colorize"
 
 class Board
   attr_reader :rows
@@ -66,7 +65,28 @@ class Board
     end
   end
 
-  
+  def move_piece(turn_color, start_pos, end_pos)
+    raise 'start position is empty' if empty?(start_pos)
+
+    piece = self[start_pos]
+    if piece.color != turn_color
+      raise 'You must move your own colored piece.'
+    elsif !piece.moves.include?(end_pos)
+      raise 'Piece cannot move there.'
+    elsif !piece.valid_moves.include?(end_pos)
+      raise 'You cannot move into check'
+    end
+
+    move_piece!(start_pos, end_pos)
+  end
+
+  def move_piece!(start_pos, end_pos)
+    piece = self[start_pos]
+    self[end_pos] = piece
+    self[start_pos] = sentinel
+    piece.pos = end_pos
+    nil
+  end
 
   private
   attr_reader :sentinel
@@ -87,6 +107,11 @@ class Board
     8.times { |j| Pawn.new(color, self, [i, j]) }
   end
 
+  def find_king(color)
+    king_pos = pieces.find { |p| p.color == color && p.is_a?(King) }
+    king_pos || (raise 'king not found')
+  end
+
   def make_starting_grid(fill_board)
     @rows = Array.new(8) { Array.new(8, sentinel) }
     return unless fill_board
@@ -95,9 +120,4 @@ class Board
       fill_pawns_row(color)
     end
   end
-end
-
-if __FILE__ == $PROGRAM_NAME
-  board = Board.new
-  p board.render
 end
