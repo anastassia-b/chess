@@ -1,12 +1,16 @@
-require_relative 'board.rb'
-require_relative "player.rb"
+require_relative 'board'
+require_relative 'player'
 
 class Game
-    attr_reader :board, :display, :player, :current_player
+    attr_reader :board, :display, :players, :current_player
+
     def initialize
       @board = Board.new
       @display = Display.new(@board)
-      @player = {white: Player.new(:white, @display), black: Player.new(:black, @display)}
+      @players = {
+        white: Player.new(:white, @display),
+        black: Player.new(:black, @display)
+      }
       @current_player = :white
     end
 

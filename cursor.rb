@@ -100,7 +100,7 @@ class Cursor
     @cursor_pos.each_with_index do |pos, i|
       new_pos[i] = pos + diff[i]
     end
-    if board.is_valid?(new_pos)
+    if board.valid_pos?(new_pos)
       @cursor_pos = new_pos
     end
   end
