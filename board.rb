@@ -1,9 +1,9 @@
-require_relative "piece.rb"
+require_relative "pieces"
 require "colorize"
 
 class Board
   attr_reader :grid
-  
+
   def initialize
     @grid = Array.new(8) { Array.new(8) { [] } }
     place_pieces
