@@ -2,65 +2,67 @@ require_relative "pieces"
 require "colorize"
 
 class Board
-  attr_reader :grid
+  attr_reader :rows
 
-  def initialize
-    @grid = Array.new(8) { Array.new(8) { [] } }
-    place_pieces
+  def initialize(fill_board = true)
+    @sentinel = NullPiece.instance
+    make_starting_grid(fill_board)
   end
-
-  def place_pieces
-    (2..5).each do |i|
-      (0..7).each do |j|
-        @grid[i][j] = NullPiece.new(:-)
-      end
-    end
-
-    @grid[0][0] = Rook.new("\u2656")
-    @grid[0][7] = Rook.new("\u2656")
-    @grid[7][0] = Rook.new("\u265d")
-    @grid[7][7] = Rook.new("\u265d")
-
-    @grid[0][1] = Knight.new("\u2658")
-    @grid[0][6] = Knight.new("\u2658")
-    @grid[7][1] = Knight.new("\u265e")
-    @grid[7][6] = Knight.new("\u265e")
-
-    @grid[0][2] = Bishop.new("\u2657")
-    @grid[0][5] = Bishop.new("\u2657")
-    @grid[7][2] = Bishop.new("\u265d")
-    @grid[7][5] = Bishop.new("\u265d")
-
-    @grid[0][3] = King.new("\u2654")
-    @grid[7][3] = King.new("\u265a")
-    @grid[0][4] = Queen.new("\u2655")
-    @grid[7][4] = Queen.new("\u265b")
-
-    (0..7).each do |i|
-      @grid[1][i] = Pawn.new("\u2659")
-      @grid[6][i] = Pawn.new("\u265f")
-    end
-  end
-
 
   def [](pos)
+    raise 'invalid pos' unless valid_pos?(pos)
+
     row, col = pos
-    @grid[row][col]
+    @rows[row][col]
   end
 
-  def []=(pos, value)
+  def []=(pos, piece)
+    raise 'invalid pos' unless valid_pos?(pos)
+
     row, col = pos
-    @grid[row][col] = value
+    @rows[row][col] = piece
   end
 
-  def move_piece(start_pos, end_pos)
-    if board[start_pos].is_a?(NullPiece)
-      raise "No piece at this spot. Enter a different spot."
+  def add_piece(piece, pos)
+    raise 'position not empty' unless empty?(pos)
+
+    self[pos] = piece
+  end
+
+  def empty?(pos)
+    self[pos].empty?
+  end
+
+  def valid_pos?(pos)
+    pos.all? { |coord| coord.between?(0,7) }
+  end
+
+  private
+  attr_reader :sentinel
+
+  def fill_back_row(color)
+    back_pieces = [
+      Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook
+    ]
+
+    i = (color == :white) ? 7 : 0
+    back_pieces.each_with_index do |piece_class, j|
+      piece_class.new(color, self, [i, j])
     end
   end
 
-  def is_valid?(pos)
-    pos.all? {|el| el.between?(0,7)}
+  def fill_pawns_row(color)
+    i = (color == :white) ? 6 : 1
+    8.times { |j| Pawn.new(color, self, [i, j]) }
+  end
+
+  def make_starting_grid(fill_board)
+    @rows = Array.new(8) { Array.new(8, sentinel) }
+    return unless fill_board
+    [:white, :black].each do |color|
+      fill_back_row(color)
+      fill_pawns_row(color)
+    end
   end
 end
 
